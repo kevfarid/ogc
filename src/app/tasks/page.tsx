@@ -14,9 +14,10 @@ import Modal from '@/core/ui/modal';
 import CreateTaskForm from './components/create-task-form';
 import Button from '@/core/ui/button';
 import AddColumnForm from './components/add-column-form';
-import useTasks from './hook/use-tasks';
+import useTasks from './hooks/use-tasks';
 import ModalConfirm from '@/core/ui/modal-confirm';
 import Task from './types/task.type';
+import { Modals } from './constants';
 
 export default function TaskPage() {
   const {
@@ -43,16 +44,16 @@ export default function TaskPage() {
 
   const onDeleteColumn = useCallback(
     (id: string, tasks: Task[]) => {
-      setModal('confirmDeleteColumn', {
+      setModal(Modals.ConfirmDeleteColumn, {
         idDeleteColumn: id,
       });
       if (tasks.length === 0) {
         handleDeleteColumn();
         return;
       }
-      open('confirmDeleteColumn');
+      openModal(Modals.ConfirmDeleteColumn);
     },
-    [setModal, handleDeleteColumn]
+    [setModal, openModal, handleDeleteColumn]
   );
 
   const listComponent = useMemo(
@@ -86,26 +87,26 @@ export default function TaskPage() {
   return (
     <main className='w-screen h-screen py-8 overflow-hidden'>
       <div className='flex justify-end gap-2 mb-8 px-6 lg:px-16'>
-        <Button onClick={() => openModal('addTask')}>Add Task</Button>
-        <Button variant='outlined' onClick={() => openModal('addColumn')}>
+        <Button onClick={() => openModal(Modals.AddTask)}>Add Task</Button>
+        <Button variant='outlined' onClick={() => openModal(Modals.AddColumn)}>
           Add Column
         </Button>
       </div>
       <Modal
-        isOpen={getModal('addTask').isOpen}
-        onClose={() => closeModal('addTask')}
+        isOpen={getModal(Modals.AddTask).isOpen}
+        onClose={() => closeModal(Modals.AddTask)}
       >
         <CreateTaskForm onSubmit={handleSubmit} />
       </Modal>
       <Modal
-        isOpen={getModal('addColumn').isOpen}
-        onClose={() => closeModal('addColumn')}
+        isOpen={getModal(Modals.AddColumn).isOpen}
+        onClose={() => closeModal(Modals.AddColumn)}
       >
         <AddColumnForm onSubmit={handleCreateColumnSubmit} />
       </Modal>
       <ModalConfirm
-        isOpen={getModal('confirmDeleteColumn').isOpen}
-        onClose={() => closeModal('confirmDeleteColumn')}
+        isOpen={getModal(Modals.ConfirmDeleteColumn).isOpen}
+        onClose={() => closeModal(Modals.ConfirmDeleteColumn)}
         onConfirm={() => handleDeleteColumn()}
         title='Are you sure? You have tasks in this column.'
         confirmText='Delete'

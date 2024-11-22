@@ -4,6 +4,7 @@ import { useCallback, useMemo } from 'react';
 import useTasksStore from '../store/use-tasks-store';
 import Task from '../types/task.type';
 import useModalsManager from '@/core/hooks/use-modals-manager';
+import { Modals } from '../constants';
 
 export default function useTasks() {
   const {
@@ -16,9 +17,9 @@ export default function useTasks() {
   } = useTasksStore();
 
   const { get, set, close, open } = useModalsManager({
-    addTask: {},
-    addColumn: {},
-    confirmDeleteColumn: {
+    [Modals.AddColumn]: {},
+    [Modals.AddTask]: {},
+    [Modals.ConfirmDeleteColumn]: {
       idDeleteColumn: '',
     },
   });
@@ -47,7 +48,7 @@ export default function useTasks() {
       title: form.title,
       description: form.description,
     });
-    close('addTask');
+    close(Modals.AddTask);
   };
 
   const handleCreateColumnSubmit = (form: Record<string, string>) => {
@@ -58,13 +59,14 @@ export default function useTasks() {
       },
       form.after
     );
+    close(Modals.AddColumn);
   };
 
   const handleDeleteColumn = useCallback(() => {
-    const id = get('confirmDeleteColumn').args?.idDeleteColumn;
+    const id = get(Modals.ConfirmDeleteColumn).args?.idDeleteColumn;
     if (id) {
       deleteColumn(id);
-      close('confirmDeleteColumn');
+      close(Modals.ConfirmDeleteColumn);
     }
   }, [deleteColumn, get, close]);
 
