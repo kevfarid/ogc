@@ -26,11 +26,22 @@ export default function AddColumnForm({
 
   const namesColumns = useMemo(
     () =>
-      list.map(({ id, title }) => ({
-        id,
-        title,
-      })),
+      list.map(({ id, title }) => (
+        <option key={id} value={id}>
+          {title}
+        </option>
+      )),
     [list]
+  );
+
+  const colorsOptions = useMemo(
+    () =>
+      Object.keys(Colors).map((color) => (
+        <option key={color} value={color.toLowerCase()}>
+          {color}
+        </option>
+      )),
+    []
   );
 
   return (
@@ -61,11 +72,7 @@ export default function AddColumnForm({
           onChange={handleChange}
           className='block w-full mt-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm'
         >
-          {Object.keys(Colors).map((color) => (
-            <option key={color} value={color.toLowerCase()}>
-              {color}
-            </option>
-          ))}
+          {colorsOptions}
         </select>
       </div>
       <div className='flex gap-2 items-center mt-4'>
@@ -81,11 +88,7 @@ export default function AddColumnForm({
           onChange={handleChange}
           className='block w-full mt-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm'
         >
-          {namesColumns.map(({ id, title }) => (
-            <option key={id} value={id}>
-              {title}
-            </option>
-          ))}
+          {namesColumns}
         </select>
       </div>
       <Button type='submit' className='mt-4 w-full'>
