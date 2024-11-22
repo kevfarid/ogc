@@ -17,7 +17,7 @@ export default function ModalConfirm({
       <div className='flex flex-col items-center justify-center h-full'>
         <h1 className='text-xl font-bold mb-4 text-center'>{title}</h1>
         <div className='flex gap-4'>
-          <Button variant='outlined' onClick={() => {}}>
+          <Button variant='outlined' onClick={props.onClose}>
             Cancel
           </Button>
           <Button onClick={onConfirm}>{confirmText}</Button>

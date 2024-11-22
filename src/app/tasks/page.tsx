@@ -1,7 +1,7 @@
 'use client';
 
 import Column from '@/app/tasks/components/column';
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   closestCenter,
   DndContext,
@@ -16,23 +16,21 @@ import Button from '@/core/ui/button';
 import AddColumnForm from './components/add-column-form';
 import useTasks from './hook/use-tasks';
 import ModalConfirm from '@/core/ui/modal-confirm';
+import Task from './types/task.type';
 
 export default function TaskPage() {
   const {
     list,
     totalColumns,
-    isModalOpen,
-    isAddingColumnModalOpen,
     handleDragEnd,
     handleSubmit,
     handleCreateColumnSubmit,
-    setIsModalOpen,
-    setIsAddingColumnModalOpen,
     deleteTask,
     handleDeleteColumn,
-    isConfirmDeleteColumnModalOpen,
-    setIsConfirmDeleteColumnModalOpen,
-    setIdDeletingColumn,
+    getModal,
+    closeModal,
+    setModal,
+    openModal,
   } = useTasks();
 
   const pointerSensor = useSensor(PointerSensor, {
@@ -43,29 +41,71 @@ export default function TaskPage() {
 
   const sensors = useSensors(pointerSensor);
 
+  const onDeleteColumn = useCallback(
+    (id: string, tasks: Task[]) => {
+      setModal('confirmDeleteColumn', {
+        idDeleteColumn: id,
+      });
+      if (tasks.length === 0) {
+        handleDeleteColumn();
+        return;
+      }
+      open('confirmDeleteColumn');
+    },
+    [setModal, handleDeleteColumn]
+  );
+
+  const listComponent = useMemo(
+    () =>
+      list.map((item) => (
+        <Column
+          key={item.id}
+          title={item.title}
+          id={item.id}
+          onDelete={(id) => {
+            onDeleteColumn(id, item.tasks);
+          }}
+        >
+          {item.tasks.map((task) => (
+            <Card
+              onDelete={({ id }) => deleteTask(id)}
+              data={task}
+              key={task.id}
+              title={task.title}
+              state={task.state}
+              id={task.id}
+            >
+              {task.description}
+            </Card>
+          ))}
+        </Column>
+      )),
+    [list, onDeleteColumn, deleteTask]
+  );
+
   return (
     <main className='w-screen h-screen py-8 overflow-hidden'>
       <div className='flex justify-end gap-2 mb-8 px-6 lg:px-16'>
-        <Button onClick={() => setIsModalOpen(true)}>Add Task</Button>
-        <Button
-          variant='outlined'
-          onClick={() => setIsAddingColumnModalOpen(true)}
-        >
+        <Button onClick={() => openModal('addTask')}>Add Task</Button>
+        <Button variant='outlined' onClick={() => openModal('addColumn')}>
           Add Column
         </Button>
       </div>
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal
+        isOpen={getModal('addTask').isOpen}
+        onClose={() => closeModal('addTask')}
+      >
         <CreateTaskForm onSubmit={handleSubmit} />
       </Modal>
       <Modal
-        isOpen={isAddingColumnModalOpen}
-        onClose={() => setIsAddingColumnModalOpen(false)}
+        isOpen={getModal('addColumn').isOpen}
+        onClose={() => closeModal('addColumn')}
       >
         <AddColumnForm onSubmit={handleCreateColumnSubmit} />
       </Modal>
       <ModalConfirm
-        isOpen={isConfirmDeleteColumnModalOpen}
-        onClose={() => setIsConfirmDeleteColumnModalOpen(false)}
+        isOpen={getModal('confirmDeleteColumn').isOpen}
+        onClose={() => closeModal('confirmDeleteColumn')}
         onConfirm={() => handleDeleteColumn()}
         title='Are you sure? You have tasks in this column.'
         confirmText='Delete'
@@ -81,35 +121,7 @@ export default function TaskPage() {
           sensors={sensors}
           collisionDetection={closestCenter}
         >
-          {list.map((item) => (
-            <Column
-              key={item.id}
-              title={item.title}
-              id={item.id}
-              onDelete={(id) => {
-                setIdDeletingColumn(id);
-                if (item.tasks.length === 0) {
-                  handleDeleteColumn();
-                  return;
-                }
-                setIsConfirmDeleteColumnModalOpen(true);
-                return;
-              }}
-            >
-              {item.tasks.map((task) => (
-                <Card
-                  onDelete={({ id }) => deleteTask(id)}
-                  data={task}
-                  key={task.id}
-                  title={task.title}
-                  state={task.state}
-                  id={task.id}
-                >
-                  {task.description}
-                </Card>
-              ))}
-            </Column>
-          ))}
+          {listComponent}
         </DndContext>
       </div>
     </main>

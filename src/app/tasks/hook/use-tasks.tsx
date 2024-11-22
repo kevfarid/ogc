@@ -1,8 +1,9 @@
 import { Color } from '@/core/ui/badge';
 import { DragEndEvent } from '@dnd-kit/core';
-import { useState, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import useTasksStore from '../store/use-tasks-store';
 import Task from '../types/task.type';
+import useModalsManager from '@/core/hooks/use-modals-manager';
 
 export default function useTasks() {
   const {
@@ -13,25 +14,31 @@ export default function useTasks() {
     deleteTask,
     deleteColumn,
   } = useTasksStore();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isAddingColumnModalOpen, setIsAddingColumnModalOpen] = useState(false);
-  const [isConfirmDeleteColumnModalOpen, setIsConfirmDeleteColumnModalOpen] =
-    useState(false);
-  const [idDeletingColumn, setIdDeletingColumn] = useState('');
 
-  const handleDragEnd = ({ over, active }: DragEndEvent) => {
-    if (!over) return;
+  const { get, set, close, open } = useModalsManager({
+    addTask: {},
+    addColumn: {},
+    confirmDeleteColumn: {
+      idDeleteColumn: '',
+    },
+  });
 
-    const data = active.data.current as Task;
-    const targetColumnId = over.id.toString();
-    const taskId = active.id.toString();
+  const handleDragEnd = useCallback(
+    ({ over, active }: DragEndEvent) => {
+      if (!over) return;
 
-    updateTaskState({
-      id: taskId,
-      state: targetColumnId,
-      data,
-    });
-  };
+      const data = active.data.current as Task;
+      const targetColumnId = over.id.toString();
+      const taskId = active.id.toString();
+
+      updateTaskState({
+        id: taskId,
+        state: targetColumnId,
+        data,
+      });
+    },
+    [updateTaskState]
+  );
 
   const totalColumns = useMemo(() => list.length, [list]);
 
@@ -40,7 +47,7 @@ export default function useTasks() {
       title: form.title,
       description: form.description,
     });
-    setIsModalOpen(false);
+    close('addTask');
   };
 
   const handleCreateColumnSubmit = (form: Record<string, string>) => {
@@ -51,28 +58,27 @@ export default function useTasks() {
       },
       form.after
     );
-    setIsAddingColumnModalOpen(false);
   };
 
-  const handleDeleteColumn = () => {
-    deleteColumn(idDeletingColumn);
-    setIsConfirmDeleteColumnModalOpen(false);
-  };
+  const handleDeleteColumn = useCallback(() => {
+    const id = get('confirmDeleteColumn').args?.idDeleteColumn;
+    if (id) {
+      deleteColumn(id);
+      close('confirmDeleteColumn');
+    }
+  }, [deleteColumn, get, close]);
 
   return {
     list,
     totalColumns,
-    isModalOpen,
-    isAddingColumnModalOpen,
     handleDragEnd,
     handleSubmit,
     handleCreateColumnSubmit,
-    setIsModalOpen,
-    setIsAddingColumnModalOpen,
-    isConfirmDeleteColumnModalOpen,
-    setIsConfirmDeleteColumnModalOpen,
     deleteTask,
     handleDeleteColumn,
-    setIdDeletingColumn,
+    getModal: get,
+    setModal: set,
+    closeModal: close,
+    openModal: open,
   };
 }
