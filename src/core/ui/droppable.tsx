@@ -14,6 +14,7 @@ export function Droppable({ id, children, style, ...props }: DroppableProps) {
   const styles = {
     ...style,
     opacity: !isOver ? 1 : 0.5,
+    border: isOver ? '2px dashed #000' : '2px dashed transparent',
   };
 
   return (

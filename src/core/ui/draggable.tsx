@@ -4,17 +4,21 @@ import { CSS } from '@dnd-kit/utilities';
 
 export type DraggableProps = {
   id: string;
-} & HTMLAttributes<HTMLButtonElement>;
+  data: Record<string, unknown>;
+} & HTMLAttributes<HTMLDivElement>;
 
 export default function Draggable({
   id,
   children,
   style,
+  data,
   ...props
 }: DraggableProps) {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: id,
-  });
+  const { attributes, listeners, setNodeRef, transform } =
+    useDraggable({
+      id,
+      data,
+    });
   const styles = {
     // Outputs `translate3d(x, y, 0)`
     ...style,
@@ -22,7 +26,7 @@ export default function Draggable({
   };
 
   return (
-    <button
+    <div
       ref={setNodeRef}
       {...listeners}
       style={styles}
@@ -30,6 +34,6 @@ export default function Draggable({
       {...props}
     >
       {children}
-    </button>
+    </div>
   );
 }
